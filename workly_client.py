@@ -35,6 +35,8 @@ def get_salaries(token):
     return response.json()
 
 
+import json
+
 if __name__ == "__main__":
     print("=== TESTING WORKLY CONNECTION ===")
     print(f"Server: {BASE_URL}")
@@ -45,7 +47,26 @@ if __name__ == "__main__":
         
         print("\nFetching salaries...")
         salaries = get_salaries(token)
-        print(f"✓ Got data:\n{str(salaries)[:1500]}")
+        
+        # Save full response to file for inspection
+        with open("workly_salaries_response.json", "w", encoding="utf-8") as f:
+            json.dump(salaries, f, indent=2, ensure_ascii=False)
+        
+        # Print summary
+        items = salaries.get("items", [])
+        print(f"✓ Got {len(items)} employees")
+        print(f"✓ Full response saved to: workly_salaries_response.json")
+        
+        # Check if anyone has salary data
+        with_salary = [e for e in items if e.get("employeeSalaries")]
+        without_salary = [e for e in items if not e.get("employeeSalaries")]
+        print(f"\n  Employees WITH salary data: {len(with_salary)}")
+        print(f"  Employees WITHOUT salary data: {len(without_salary)}")
+        
+        if with_salary:
+            print(f"\nExample employee WITH salary:")
+            print(json.dumps(with_salary[0], indent=2, ensure_ascii=False))
+        
     except requests.exceptions.HTTPError as e:
         print(f"\n✗ HTTP ERROR: {e}")
         print(f"Response: {e.response.text}")
